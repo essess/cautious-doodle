@@ -3,8 +3,9 @@ NET "clk50M" TNM_NET = "clk50M" | LOC = P21 | IOSTANDARD = LVCMOS33;
 TIMESPEC TS_clk50M = PERIOD "clk50M" 20 ns HIGH 50 %;
 # -----------------------------------------------
 
-NET "btn[1]" LOC = P133 | IOSTANDARD = LVCMOS33;             # active high w/external pd
-NET "btn[2]" LOC = P132 | IOSTANDARD = LVCMOS33;
+#NET "btn[1]" LOC = P133 | IOSTANDARD = LVCMOS33;             # active high w/external pd
+NET "arst" LOC = P133 | IOSTANDARD = LVCMOS33;
+#NET "btn[2]" LOC = P132 | IOSTANDARD = LVCMOS33;
 #NET "btn[3]" LOC = P131 | IOSTANDARD = LVCMOS33;
 
 # -----------------------------------------------
@@ -20,7 +21,7 @@ NET "btn[2]" LOC = P132 | IOSTANDARD = LVCMOS33;
 
 # -----------------------------------------------
 
-NET "led[1]" LOC = P44 | IOSTANDARD = LVCMOS33;              # active high
+#NET "led[1]" LOC = P44 | IOSTANDARD = LVCMOS33;              # active high
 #NET "led[2]" LOC = P45 | IOSTANDARD = LVCMOS33;
 #NET "led[3]" LOC = P46 | IOSTANDARD = LVCMOS33;
 #NET "led[4]" LOC = P47 | IOSTANDARD = LVCMOS33;
@@ -73,9 +74,9 @@ NET "sseg_an[3]" LOC = P126 | IOSTANDARD = LVCMOS33;
 
 # -----------------------------------------------
 
-NET "encclk"  LOC = P79 | IOSTANDARD = LVCMOS33;
-NET "encdata" LOC = P81 | IOSTANDARD = LVCMOS33;
-NET "encsw"   LOC = P83 | IOSTANDARD = LVCMOS33;
+NET "enc_a"  LOC = P79 | IOSTANDARD = LVCMOS33;
+NET "enc_b"  LOC = P81 | IOSTANDARD = LVCMOS33;
+NET "enc_sw" LOC = P83 | IOSTANDARD = LVCMOS33;
 
 # -----------------------------------------------
 # -----------------------------------------------

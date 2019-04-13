@@ -1,55 +1,86 @@
 ---
- -- Copyright (c) 2018 Sean Stasiak. All rights reserved.
+ -- Copyright (c) 2019 Sean Stasiak. All rights reserved.
  -- Developed by: Sean Stasiak <sstasiak@protonmail.com>
  -- Refer to license terms in license.txt; In the absence of such a file,
  -- contact me at the above email address and I can provide you with one.
 ---
 
 library ieee;
-use ieee.std_logic_1164.all;
+use ieee.std_logic_1164.all,
+    ieee.numeric_std.all;
+
+---
+ -- (DEBOUNCE) an input stream.
+ -- sampling occurs when enb_in='1' and rising_edge(clk_in)
+ -- n is the number of samples required to be the same value before changing
+ -- output state of q
+---
+
 
 entity debounce is
-  generic( samples : integer range 3 to integer'high ); --< +1 latency
-  port( d_in                 : in  std_logic;
-        rst_in, sampleclk_in : in  std_logic;
-        q_out                : out std_logic );
+  generic( n   : integer;             --< number of samples
+           TPD : time := 0 ns );
+  port( clk_in  : in  std_logic;
+        srst_in : in  std_logic;
+        enb_in  : in  std_logic;      --< 'sample clk'
+        d_in    : in  std_logic;
+        q_out   : out std_logic );    --< q <= d upon (2^n) samples
 end entity;
 
 architecture arch of debounce is
 
-  component sr is
-    generic( width : integer range 2 to integer'high );
-    port( d_in           : in  std_logic;
-          rst_in, clk_in : in  std_logic;
-          q_out          : out std_logic_vector(width-1 downto 0) );
+  component siposr is
+    generic( n   : integer;           --< width
+             TPD : time := 0 ns );
+    port( clk_in  : in  std_logic;
+          srst_in : in  std_logic;
+          enb_in  : in  std_logic;    --< shift enable
+          d_in    : in  std_logic;
+          q_out   : out std_logic_vector(n-1 downto 0) );
   end component;
 
-  signal sr_q_out     : std_logic_vector(samples-1 downto 0);
+  signal sr_q : std_logic_vector(n-1 downto 0);
+  signal q, q_next : std_logic;
+
+  constant all_ones  : std_logic_vector(sr_q'range) := (others=>'1');
+  constant all_zeros : std_logic_vector(sr_q'range) := (others=>'0');
+  signal ones, zeros : std_logic;
 
 begin
 
-  shiftreg: sr
-    generic map( width=>samples )
-    port map( d_in=>d_in,
-              rst_in=>rst_in, clk_in=>sampleclk_in,
-              q_out=>sr_q_out );
+  siposr0: siposr
+    generic map( n => n )
+    port map( clk_in  => clk_in,
+              srst_in => srst_in,
+              enb_in  => enb_in,
+              d_in    => d_in,
+              q_out   => sr_q );
 
-  process(sampleclk_in)
-    constant all_ones  : std_logic_vector(samples-1 downto 0) := (others=>'1');
-    constant all_zeros : std_logic_vector(samples-1 downto 0) := (others=>'0');
-    variable q : std_logic;
+  state : process(clk_in)
   begin
-    if rising_edge(sampleclk_in) then
-      if rst_in = '1' then  q := d_in;
+    if rising_edge(clk_in) then
+      if srst_in = '1' then
+        q <= d_in;
       else
-        case sr_q_out is
-          when all_ones  => q := '1';
-          when all_zeros => q := '0';
-          when others    => q :=  q ;
-        end case;
+        q <= q_next;
       end if;
     end if;
-    q_out <= q;
   end process;
+
+
+  -- Due to width being parameterized via n, VHDL does not see all_ones, or all_zeros
+  -- as locally static. Determining next state requires a little trickery on our
+  -- part below in order to use this with GHDL which is very strict about such things
+
+  -- next
+  ones  <= '1' when (sr_q = all_ones)  else '0';
+  zeros <= '1' when (sr_q = all_zeros) else '0';
+
+  q_next <= '1' when ((ones='1') and (zeros='0')) else
+            '0' when ((ones='0') and (zeros='1')) else
+            q;
+
+  -- output
+  q_out <= q after TPD;
 
 end architecture;
