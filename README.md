@@ -1,5 +1,5 @@
 # cautious-doodle
 
-I have a number of Keyes KY-040 rotary encoders from aliexpress that have gone untested. Using my new 7 segment VHDL module I decided to use the encoder to inc/dec a counter and drive its current value out to the display. Look to the .ucf for pin assignments.
+I have a number of Keyes KY-040 rotary encoders from aliexpress that needed testing. This design is fully synchronous and uses such things as enable signals to increment counters and modulate displays at frequencies other than the 50MHz input clock. Built with ISE 14.7 and capable of 300+ MHz.
 
-This project brings together all of my new VHDL modules I've been working on the last few days in a pretty meaningful and non-trivial way. The encoders are horribly noisy and demanded the use of a glitch filter.
+![alt text](demo.gif)
